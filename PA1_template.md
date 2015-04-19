@@ -1,10 +1,5 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: Peter Chines
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
+Peter Chines  
 
 ## Introduction
 
@@ -22,7 +17,8 @@ and in the
 The data is in a compressed comma-delimited file, and can be read into a
 dataframe with this R command:
 
-```{r get_data}
+
+```r
 raw <- read.csv(unzip("activity.zip"))
 nas <- sum(is.na(raw$steps))
 intvs <- nrow(raw)
@@ -30,15 +26,16 @@ intvs <- nrow(raw)
 
 No preprocessing of the data are required, but note that dates are strings in
 YYYY-MM-DD format, and interval labels are integers consisting of values
-composed of hour * 100 + minute.  None of the labels, but `r nas` of the step
-counts (`r sprintf("%.1f%%", 100 * nas / intvs)`) are missing (NA).
+composed of hour * 100 + minute.  None of the labels, but 2304 of the step
+counts (13.1%) are missing (NA).
 
 ## Steps per day
 
 The mean and median number of steps per day (ignoring missing values) can be
 calculated, and a histogram shows the distribution of values:
 
-```{r by_day}
+
+```r
 by.day <- aggregate(steps ~ date, raw, sum)
 mn.day <- mean(by.day$steps)
 md.day <- median(by.day$steps)
@@ -46,15 +43,18 @@ library(ggplot2)
 qplot(steps, data=by.day, geom="histogram", binwidth=1000)
 ```
 
-The mean number of steps per day is `r sprintf("%.1f",mn.day)`, and the median
-is `r md.day`.
+![](PA1_template_files/figure-html/by_day-1.png) 
+
+The mean number of steps per day is 10766.2, and the median
+is 10765.
 
 ## Average daily activity pattern
 
 The average daily activity pattern can be seen by taking the mean for each
 interval across all days (again, ignoring missing values):
 
-```{r by_interval}
+
+```r
 by.int <- aggregate(steps ~ interval, raw, mean)
 max <- max(by.int$steps)
 max.intv <- by.int[which(by.int$steps == max), "interval"]
@@ -63,8 +63,10 @@ qplot(as.factor(interval), steps, data=by.int, geom="line",
     scale_x_discrete(name="Interval", breaks=seq(0,2400,by=200))
 ```
 
-The average daily interval with the maximum number of steps is `r max.intv`,
-with an average of `r max` steps over the two-month period.
+![](PA1_template_files/figure-html/by_interval-1.png) 
+
+The average daily interval with the maximum number of steps is 835,
+with an average of 206.1698113 steps over the two-month period.
 
 ## Imputing missing values
 
@@ -74,7 +76,8 @@ them with the mean daily number of steps for that interval.  This will be
 a reasonable strategy if the daily pattern for our individual is relatively
 stable.
 
-```{r impute}
+
+```r
 act <- merge(raw, by.int, by="interval")
 act$steps <- ifelse(is.na(act$steps.x), act$steps.y, act$steps.x)
 ```
@@ -82,15 +85,18 @@ act$steps <- ifelse(is.na(act$steps.x), act$steps.y, act$steps.x)
 After imputing the missing values, we can once again look at the daily
 pattern of activity:
 
-```{r imputed_by_day}
+
+```r
 act.day <- aggregate(steps ~ date, act, sum)
 amn.day <- mean(act.day$steps)
 amd.day <- median(act.day$steps)
 qplot(steps, data=act.day, geom="histogram", binwidth=1000)
 ```
 
-After imputing missing values, the mean is `r sprintf("%.1f", amn.day)` steps
-per day, and the median is `r sprintf("%.1f", amd.day)` steps per day.
+![](PA1_template_files/figure-html/imputed_by_day-1.png) 
+
+After imputing missing values, the mean is 10766.2 steps
+per day, and the median is 10766.2 steps per day.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -98,7 +104,8 @@ Using these imputed data, we can assess whether there are different activity
 patterns between weekdays and weekends (assuming that this individual has a
 normal Monday through Friday workweek):
 
-```{r weekday_vs_weekend}
+
+```r
 act$wday <- weekdays(as.POSIXlt(as.character(act$date)), abbrev = TRUE)
 act$schedule <- "weekday"
 act$schedule[act$wday=="Sun" | act$wday=="Sat"] <- "weekend"
@@ -107,6 +114,8 @@ qplot(as.factor(interval), steps, data=act.int, geom="line",
     facets=schedule~., group=schedule, color=schedule) +
     scale_x_discrete(name="Interval", breaks=seq(0,2400,by=200))
 ```
+
+![](PA1_template_files/figure-html/weekday_vs_weekend-1.png) 
 
 There are noticeable differences in activity patterns between weekdays and
 weekends: weekdays, activity typically begins just before 6am, peaks around
